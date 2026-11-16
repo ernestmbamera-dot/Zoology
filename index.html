@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zoology Quiz — BIO31101 · LUANAR</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0e16;
+  --surface: #161824;
+  --surface2: #1f2232;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #f0f0f5;
+  --muted: #8e92ad;
+  --accent: #3ddc84;
+  --accent2: #1fa65a;
+  --green: #2ecc7e;
+  --red: #ff5c6a;
+  --amber: #ffbb3d;
+  --pill-bg: rgba(61,220,132,0.13);
+  --pill-border: rgba(61,220,132,0.35);
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.65; min-height: 100vh; }
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(61,220,132,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(61,220,132,0.035) 1px, transparent 1px);
+  background-size: 40px 40px; pointer-events: none; z-index: 0;
+}
+.wrap { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 0 20px 80px; }
+.screen { display: none; animation: fadeUp 0.4s ease; }
+.screen.active { display: block; }
+@keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
+nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+.nav-logo { font-family: var(--font-display); font-weight: 800; font-size: 15px; letter-spacing: 0.05em; color: var(--accent); }
+.nav-logo span { color: var(--muted); font-weight: 400; }
+.nav-links { display: flex; gap: 6px; }
+.nav-btn { background: transparent; border: 1px solid var(--border2); color: var(--muted); padding: 6px 14px; border-radius: 40px; font-size: 12px; font-family: var(--font-body); cursor: pointer; transition: all 0.2s; }
+.nav-btn:hover, .nav-btn.active { border-color: var(--accent); color: var(--accent); background: var(--pill-bg); }
+.hero { padding: 60px 0 40px; }
+.hero-tag { display: inline-flex; align-items: center; gap: 8px; background: var(--pill-bg); border: 1px solid var(--pill-border); color: var(--accent); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 14px; border-radius: 40px; margin-bottom: 28px; }
+.hero-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+h1 { font-family: var(--font-display); font-size: clamp(34px, 6vw, 54px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 18px; }
+h1 em { font-style: normal; color: var(--accent); }
+.hero-sub { font-size: 15px; color: var(--muted); max-width: 500px; margin-bottom: 36px; line-height: 1.7; }
+.hero-stats { display: flex; gap: 28px; margin-bottom: 40px; }
+.stat-n { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text); }
+.stat-l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.register-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; padding: 32px; margin-bottom: 40px; }
+.register-card h2 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.register-card p { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-row.full { grid-template-columns: 1fr; }
+label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
+input { width: 100%; background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-family: var(--font-body); font-size: 14px; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
+input:focus { border-color: var(--accent); }
+input::placeholder { color: var(--muted); }
+.topic-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.topic-toggle { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted); padding: 6px 14px; border-radius: 40px; font-size: 12px; cursor: pointer; font-family: var(--font-body); transition: all 0.2s; }
+.topic-toggle.on { background: var(--pill-bg); border-color: var(--pill-border); color: var(--accent); }
+.btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-body); font-size: 14px; font-weight: 500; padding: 11px 22px; border-radius: 40px; cursor: pointer; border: none; transition: all 0.2s; }
+.btn-primary { background: var(--accent); color: #0d0e16; font-weight: 700; }
+.btn-primary:hover { background: #6ff0a8; transform: translateY(-1px); }
+.btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
+.btn-ghost:hover { color: var(--text); background: var(--surface2); }
+.btn-sm { padding: 7px 16px; font-size: 13px; }
+.progress-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.progress-label { font-size: 12px; color: var(--muted); }
+.progress-score { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--accent); }
+.progress-track { height: 3px; background: var(--surface2); border-radius: 3px; margin-bottom: 28px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 3px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+.q-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; padding: 28px 28px 20px; margin-bottom: 16px; }
+.q-section-tag { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); background: var(--pill-bg); border: 1px solid var(--pill-border); padding: 3px 10px; border-radius: 40px; margin-bottom: 14px; }
+.q-text { font-family: var(--font-display); font-size: 18px; font-weight: 600; line-height: 1.4; color: var(--text); margin-bottom: 22px; }
+.options { display: grid; gap: 9px; }
+.opt-btn { display: flex; align-items: flex-start; gap: 12px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 13px 16px; text-align: left; cursor: pointer; width: 100%; font-family: var(--font-body); font-size: 14px; color: var(--text); transition: all 0.2s; line-height: 1.5; }
+.opt-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(61,220,132,0.07); }
+.opt-btn:disabled { cursor: default; }
+.opt-letter { min-width: 24px; height: 24px; border-radius: 6px; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--muted); font-family: var(--font-display); flex-shrink: 0; margin-top: 1px; }
+.opt-btn.correct { border-color: var(--green); background: rgba(46,204,126,0.08); }
+.opt-btn.correct .opt-letter { background: var(--green); color: #0d0e16; }
+.opt-btn.wrong { border-color: var(--red); background: rgba(255,92,106,0.08); }
+.opt-btn.wrong .opt-letter { background: var(--red); color: #fff; }
+.feedback-box { border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 1.65; margin-bottom: 14px; display: none; }
+.feedback-box.correct { background: rgba(46,204,126,0.1); border: 1px solid rgba(46,204,126,0.3); color: #7ef0b0; }
+.feedback-box.wrong { background: rgba(255,92,106,0.1); border: 1px solid rgba(255,92,106,0.3); color: #ffa0a8; }
+.feedback-box strong { display: block; margin-bottom: 4px; font-family: var(--font-display); font-size: 13px; }
+.discussion-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; display: none; }
+.discussion-section h4 { font-family: var(--font-display); font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+.comments-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; max-height: 260px; overflow-y: auto; }
+.comment { background: var(--surface2); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+.comment-author { font-weight: 500; color: var(--accent); font-size: 12px; margin-bottom: 3px; }
+.comment-text { color: var(--text); line-height: 1.5; }
+.comment-time { font-size: 10px; color: var(--muted); margin-top: 4px; }
+.comment-input-row { display: flex; gap: 8px; }
+.comment-input-row input { flex: 1; }
+.no-comments { font-size: 12px; color: var(--muted); font-style: italic; }
+.quiz-nav { display: flex; align-items: center; justify-content: space-between; }
+.result-hero { text-align: center; padding: 60px 0 40px; }
+.result-ring { width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(var(--accent) var(--pct, 0%), var(--surface2) 0%); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 0 40px rgba(61,220,132,0.22); }
+.result-ring-inner { width: 108px; height: 108px; border-radius: 50%; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-pct { font-family: var(--font-display); font-size: 32px; font-weight: 800; }
+.result-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.result-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; margin-bottom: 10px; }
+.result-sub { color: var(--muted); max-width: 440px; margin: 0 auto 32px; font-size: 14px; line-height: 1.65; }
+.result-breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 36px; }
+.breakdown-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 18px; text-align: center; }
+.breakdown-n { font-family: var(--font-display); font-size: 28px; font-weight: 700; }
+.breakdown-n.green { color: var(--green); } .breakdown-n.red { color: var(--red); } .breakdown-n.amber { color: var(--amber); }
+.breakdown-l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 4px; }
+.lb-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; overflow: hidden; margin-bottom: 24px; }
+.lb-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.lb-header h3 { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
+.lb-row { display: flex; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.lb-row:last-child { border-bottom: none; }
+.lb-row:hover { background: var(--surface2); }
+.lb-rank { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--muted); width: 28px; text-align: center; flex-shrink: 0; }
+.lb-rank.gold { color: #ffd700; } .lb-rank.silver { color: #c0c0c0; } .lb-rank.bronze { color: #cd7f32; }
+.lb-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.lb-info { flex: 1; }
+.lb-name { font-size: 14px; font-weight: 500; }
+.lb-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.lb-score-wrap { text-align: right; }
+.lb-score { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--accent); }
+.lb-pct { font-size: 11px; color: var(--muted); }
+.lb-empty { padding: 36px 24px; text-align: center; color: var(--muted); font-size: 13px; }
+.badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 40px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+.badge-you { background: rgba(61,220,132,0.15); color: var(--accent); border: 1px solid var(--pill-border); }
+.text-muted { color: var(--muted); } .text-center { text-align: center; } .flex-gap { display: flex; gap: 10px; flex-wrap: wrap; }
+::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+@media(max-width: 560px) { .form-row { grid-template-columns: 1fr; } .result-breakdown { grid-template-columns: 1fr 1fr; } h1 { font-size: 30px; } .q-text { font-size: 16px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="nav-logo">BIO31101<span>/zoology</span></div>
+    <div class="nav-links">
+      <button class="nav-btn active" onclick="showScreen('home')">Quiz</button>
+      <button class="nav-btn" onclick="showScreen('leaderboard')">Leaderboard</button>
+    </div>
+  </nav>
+
+  <div id="screen-home" class="screen active">
+    <div class="hero">
+      <div class="hero-tag">BIO31101 · ONE % STUDY HUB · LUANAR</div>
+      <h1>Animal <em>Zoology</em><br>Quiz</h1>
+      <p class="hero-sub">Questions drawn directly from your Biology Zoology slides — animal characteristics and classification, Protozoa, Porifera, Cnidaria, flatworms, molluscs, annelids, nematodes, arthropods and chordates.</p>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-n" id="stat-q">0</div><div class="stat-l">Questions</div></div>
+        <div class="stat"><div class="stat-n" id="stat-t">0</div><div class="stat-l">Topics</div></div>
+        <div class="stat"><div class="stat-n" id="stat-players">0</div><div class="stat-l">Attempts</div></div>
+      </div>
+    </div>
+    <div class="register-card">
+      <h2>Register to start</h2>
+      <p>Your name and score will appear on the BIO31101 leaderboard.</p>
+      <div class="form-row">
+        <div><label for="inp-name">Full name</label><input type="text" id="inp-name" placeholder="e.g. Leo Mbamera"></div>
+        <div><label for="inp-reg">Reg. number</label><input type="text" id="inp-reg" placeholder="e.g. 2501013**"></div>
+      </div>
+      <div class="form-row full">
+        <div>
+          <label>Filter topics (tap to deselect)</label>
+          <div class="topic-grid" id="topic-grid"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="startQuiz()" style="width:100%;justify-content:center;margin-top:4px">Start quiz →</button>
+    </div>
+  </div>
+
+  <div id="screen-quiz" class="screen">
+    <div style="padding-top: 24px;">
+      <div class="progress-header">
+        <span class="progress-label" id="prog-label">Question 1</span>
+        <span class="progress-score" id="prog-score">0 pts</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="q-card">
+        <div class="q-section-tag" id="q-section"></div>
+        <div class="q-text" id="q-text"></div>
+        <div class="options" id="options"></div>
+      </div>
+      <div class="feedback-box" id="feedback"></div>
+      <div class="discussion-section" id="discussion-section">
+        <h4>💬 Group discussion</h4>
+        <div class="comments-list" id="comments-list"></div>
+        <div class="comment-input-row">
+          <input type="text" id="comment-input" placeholder="Add your thought…" maxlength="200" onkeydown="if(event.key==='Enter')postComment()">
+          <button class="btn btn-ghost btn-sm" onclick="postComment()">Post</button>
+        </div>
+      </div>
+      <div class="quiz-nav">
+        <button class="btn btn-ghost" onclick="showScreen('home')">← Exit</button>
+        <button class="btn btn-primary" id="next-btn" onclick="nextQ()" style="display:none">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-result" class="screen">
+    <div class="result-hero">
+      <div class="result-ring" id="result-ring">
+        <div class="result-ring-inner">
+          <div class="result-pct" id="result-pct">0%</div>
+          <div class="result-label">score</div>
+        </div>
+      </div>
+      <div class="result-title" id="result-title">Well done!</div>
+      <div class="result-sub" id="result-sub"></div>
+      <div class="result-breakdown">
+        <div class="breakdown-card"><div class="breakdown-n green" id="bd-correct">0</div><div class="breakdown-l">Correct</div></div>
+        <div class="breakdown-card"><div class="breakdown-n red" id="bd-wrong">0</div><div class="breakdown-l">Wrong</div></div>
+        <div class="breakdown-card"><div class="breakdown-n amber" id="bd-total">0</div><div class="breakdown-l">Total</div></div>
+      </div>
+      <div class="flex-gap" style="justify-content:center">
+        <button class="btn btn-ghost" onclick="restartQuiz()">Retry</button>
+        <button class="btn btn-primary" onclick="showScreen('leaderboard')">View leaderboard →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-leaderboard" class="screen">
+    <div style="padding-top: 32px;">
+      <h2 style="font-family: var(--font-display); font-size: 26px; font-weight: 800; margin-bottom: 6px;">Leaderboard</h2>
+      <p class="text-muted" style="font-size: 13px; margin-bottom: 28px;">BIO31101 — Zoology rankings.</p>
+      <div class="lb-card">
+        <div class="lb-header"><h3>Top scores</h3><span class="text-muted" style="font-size:12px" id="lb-count">0 attempts</span></div>
+        <div id="lb-rows"></div>
+      </div>
+      <div class="text-center"><button class="btn btn-ghost" onclick="showScreen('home')">Take the quiz →</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── QUESTION BANK — built from BIO31101 Zoology slides ─────────────────
+const RAW = [
+ {
+  "s": "Characteristics & Classification",
+  "q": "Which set of features describes most animals?",
+  "correct": "Multicellular eukaryotes that are heterotrophic, motile and mostly diploid",
+  "wrong": [
+   "Multicellular eukaryotes that are autotrophic, sessile and mostly haploid",
+   "Unicellular prokaryotes that are heterotrophic, motile and mostly diploid",
+   "Unicellular prokaryotes that are heterotrophic, motile and mostly diploid in form"
+  ],
+  "exp": "Animals are multicellular eukaryotes with specialised cells; they are heterotrophic, motile, sensitive, and mostly diploid with sexual reproduction."
+ },
+ {
+  "s": "Characteristics & Classification",
+  "q": "Zoology is best defined as:",
+  "correct": "The study of animals — their classification, evolution and behaviour",
+  "wrong": [
+   "The study of plants — their classification, evolution, physiology and ecology",
+   "The study of microbes — their classification, structure, growth and genetics",
+   "The study of fossils only — their dating, formation, preservation and location"
+  ],
+  "exp": "Zoology = study of animals, including classification, evolution, development, physiology, form and function, behaviour and ecology."
+ },
+ {
+  "s": "Characteristics & Classification",
+  "q": "Body symmetry refers to:",
+  "correct": "The arrangement of body structures in relation to the main axis",
+  "wrong": [
+   "The number of germ layers that form in the early embryo",
+   "The type of cavity that forms between the gut and the body wall",
+   "The pattern in which the fertilised egg divides in early growth"
+  ],
+  "exp": "Body symmetry = arrangement of body structures around the main axis. Porifera are asymmetrical, Cnidaria radial and mammals bilateral."
+ },
+ {
+  "s": "Characteristics & Classification",
+  "q": "Diploblastic animals have:",
+  "correct": "Only ectoderm and endoderm, with no true mesoderm",
+  "wrong": [
+   "Ectoderm, mesoderm and endoderm in the early embryo",
+   "Only mesoderm and endoderm, with no outer layer at all",
+   "A single germ layer that gives rise to every tissue"
+  ],
+  "exp": "Diploblasts have two germ layers: ectoderm (outer covering and nervous system) and endoderm (lines the gut). Porifera and Cnidaria are diploblasts."
+ },
+ {
+  "s": "Characteristics & Classification",
+  "q": "In triploblastic animals the mesoderm gives rise to:",
+  "correct": "Muscles, skeletal and circulatory systems",
+  "wrong": [
+   "The outer covering and the nervous system",
+   "The lining of the digestive system",
+   "The pores and canals of the body surface"
+  ],
+  "exp": "The mesoderm lies between ectoderm and endoderm and forms muscles, skeleton and the circulatory system."
+ },
+ {
+  "s": "Characteristics & Classification",
+  "q": "Which option correctly matches each phylum with its body cavity type?",
+  "correct": "Platyhelminthes — acoelomate; Nematoda — pseudocoelomate; Mollusca — coelomate",
+  "wrong": [
+   "Platyhelminthes — coelomate; Nematoda — acoelomate; Mollusca — pseudocoelomate",
+   "Platyhelminthes — pseudocoelomate; Nematoda — coelomate; Mollusca — acoelomate",
+   "Platyhelminthes — acoelomate; Nematoda — coelomate; Mollusca — pseudocoelomate"
+  ],
+  "exp": "Flatworms have no body cavity (acoelomate), roundworms a false cavity (pseudocoelomate), and molluscs a true coelom."
+ },
+ {
+  "s": "Characteristics & Classification",
+  "q": "What distinguishes protostomes from deuterostomes?",
+  "correct": "The blastopore becomes the mouth in protostomes and the anus in deuterostomes",
+  "wrong": [
+   "The blastopore becomes the anus in protostomes and the mouth in deuterostomes",
+   "Protostomes show radial cleavage while deuterostomes show spiral cleavage",
+   "Protostomes have no coelom while deuterostomes have a false body cavity"
+  ],
+  "exp": "Protostomes: spiral, determinate cleavage and the blastopore forms the mouth. Deuterostomes: radial, indeterminate cleavage and the blastopore forms the anus."
+ },
+ {
+  "s": "Characteristics & Classification",
+  "q": "Which of these groups are deuterostomes?",
+  "correct": "Chordates (e.g. fish and mammals)",
+  "wrong": [
+   "Molluscs (e.g. clams and snails)",
+   "Annelids (e.g. earthworms and leeches)",
+   "Arthropods (e.g. spiders and insects)"
+  ],
+  "exp": "Chordates are deuterostomes; molluscs, annelids and arthropods are protostomes."
+ },
+ {
+  "s": "Phylum Protozoa",
+  "q": "The word 'protozoa' means:",
+  "correct": "First animals (proto = first, zoa = animal)",
+  "wrong": [
+   "Small plants (proto = small, zoa = plant life)",
+   "Single cells (proto = one, zoa = cell)",
+   "Water animals (proto = wet, zoa = animal)"
+  ],
+  "exp": "Proto = first, zoa = animal. The idea of unicellular animals was accepted in 1846."
+ },
+ {
+  "s": "Phylum Protozoa",
+  "q": "Who first observed protozoans under a microscope in 1675?",
+  "correct": "Leeuwenhoek",
+  "wrong": [
+   "Louis Pasteur",
+   "Robert Hooke",
+   "Rudolf Virchow"
+  ],
+  "exp": "Leeuwenhoek saw protozoans for the first time in 1675."
+ },
+ {
+  "s": "Phylum Protozoa",
+  "q": "Where are protozoans found?",
+  "correct": "Almost anywhere there is some moisture",
+  "wrong": [
+   "Only in the sea where there is enough salt",
+   "Only inside the bodies of other living animals",
+   "Only in soil that has no water in it at all"
+  ],
+  "exp": "Protozoans are ubiquitous, provided there is some moisture."
+ },
+ {
+  "s": "Phylum Protozoa",
+  "q": "What is the function of the contractile vacuole in protozoans?",
+  "correct": "Osmoregulation by removing excess water from the cell",
+  "wrong": [
+   "Digestion of food particles taken in by phagocytosis",
+   "Storage of paramylum as a food reserve in the cytoplasm",
+   "Detection of light through a pigment spot near the flagellum"
+  ],
+  "exp": "Protozoa have food vacuoles (digestion) and contractile vacuoles (osmoregulation)."
+ },
+ {
+  "s": "Phylum Protozoa",
+  "q": "In most ciliates, the two types of nuclei are:",
+  "correct": "A macronucleus for vegetative growth and a micronucleus for reproduction",
+  "wrong": [
+   "A micronucleus for vegetative growth and a macronucleus for reproduction",
+   "A macronucleus for conjugation and a micronucleus for excretion",
+   "A single nucleus for growth and a second for locomotion only"
+  ],
+  "exp": "Most ciliates have a macronucleus (vegetative growth) and a micronucleus (reproduction)."
+ },
+ {
+  "s": "Phylum Protozoa",
+  "q": "Which of these is a form of asexual reproduction in protozoans?",
+  "correct": "Binary fission, schizogony (multiple fission) or budding",
+  "wrong": [
+   "Gemmule formation, snapping or fragmentation",
+   "Conjugation, torsion or metamorphosis of larvae",
+   "Spermatophore exchange, internal fertilisation or laying eggs"
+  ],
+  "exp": "Asexual reproduction in protozoans: binary fission, schizogony or budding. Sexual reproduction occurs in ciliates and sporozoans."
+ },
+ {
+  "s": "Phylum Protozoa",
+  "q": "Class Mastigophora is characterised by:",
+  "correct": "One or more flagella with a 9+2 fibre arrangement",
+  "wrong": [
+   "Temporary cytoplasmic projections called pseudopodia",
+   "Many cilia and two types of nuclei in each cell",
+   "A complete absence of flagella, cilia and pseudopodia"
+  ],
+  "exp": "Mastigophora have flagella (9+2 internal fibres) with a basal body; examples are Euglena, Volvox and Trypanosoma."
+ },
+ {
+  "s": "Phylum Protozoa",
+  "q": "Sleeping sickness is caused by Trypanosoma and transmitted by:",
+  "correct": "The tsetse fly (Glossina)",
+  "wrong": [
+   "The sand fly (Phlebotomus)",
+   "The reduviid bug",
+   "The Anopheles mosquito"
+  ],
+  "exp": "Sleeping sickness: Glossina (tsetse). Chagas disease: reduviid bug. Leishmaniasis: sand fly (Phlebotomus)."
+ },
+ {
+  "s": "Phylum Protozoa",
+  "q": "Class Rhizopoda moves and feeds using:",
+  "correct": "Pseudopodia, taking in food particles by phagocytosis",
+  "wrong": [
+   "Flagella, taking in food particles by absorption only",
+   "Cilia, taking in food particles by filter feeding",
+   "Spores, taking in food particles by photosynthesis"
+  ],
+  "exp": "Amoeba and Entamoeba histolytica are Rhizopoda; pseudopodia are used for locomotion and hunting."
+ },
+ {
+  "s": "Phylum Protozoa",
+  "q": "Which feature is typical of class Sporozoa?",
+  "correct": "They are exclusively parasitic and lack flagella and cilia",
+  "wrong": [
+   "They are mostly free-living and move using many cilia",
+   "They are photosynthetic and usually form large colonies",
+   "They are photosynthetic and usually form large floating colonies"
+  ],
+  "exp": "Sporozoa lack flagella or cilia, are exclusively parasitic and reproduce by spores. Plasmodium causes malaria."
+ },
+ {
+  "s": "Phylum Porifera",
+  "q": "The collar cells (choanocytes) of sponges:",
+  "correct": "Have a flagellum ringed by a collar and help digestion",
+  "wrong": [
+   "Make the spicules that support the sponge body wall and canals",
+   "Release stinging threads to defend against predators and rivals",
+   "Form the outer layer and carry sperm cells to neighbouring sponges"
+  ],
+  "exp": "Choanocytes have a flagellum surrounded by a collar of microvilli, creating water flow and capturing food."
+ },
+ {
+  "s": "Phylum Porifera",
+  "q": "Water flows through a sponge by entering through the ______ and leaving through the ______.",
+  "correct": "ostia (incurrent pores); osculum (excurrent pore)",
+  "wrong": [
+   "osculum (incurrent pore); ostia (excurrent pores)",
+   "spongocoel (incurrent pore); gemmules (excurrent pores)",
+   "mesohyl (incurrent layer); ostia (excurrent pores)"
+  ],
+  "exp": "Incurrent pores are ostia, excurrent pores are oscula; the internal canals and spongocoel are lined with choanocytes."
+ },
+ {
+  "s": "Phylum Porifera",
+  "q": "Gemmules in sponges are:",
+  "correct": "Small groups of cells that break away for asexual reproduction",
+  "wrong": [
+   "Specialised sex cells that are released into the open water",
+   "Needle-like spicules made of silica or calcium carbonate",
+   "Collar-bearing cells that move food around inside the sponge"
+  ],
+  "exp": "Gemmules allow asexual reproduction in sponges."
+ },
+ {
+  "s": "Phylum Porifera",
+  "q": "Most sponges are hermaphrodites. How do they avoid self-fertilisation?",
+  "correct": "Male and female sex cells mature at different times",
+  "wrong": [
+   "They release only male sex cells during the whole season",
+   "They retain eggs inside the body until the adult dies",
+   "The sex cells are kept separate by a layer of gelatin"
+  ],
+  "exp": "They avoid simultaneous maturity of male and female sex cells and release them into the water."
+ },
+ {
+  "s": "Phylum Porifera",
+  "q": "Sponges with a chalky skeleton belong to Class:",
+  "correct": "Calcarea",
+  "wrong": [
+   "Hexactinellida",
+   "Demospongiae",
+   "Hydrozoa"
+  ],
+  "exp": "Calcarea = chalky; Hexactinellida = glass/silica; Demospongiae = spongin (sometimes with silica)."
+ },
+ {
+  "s": "Phylum Cnidaria",
+  "q": "Cnidocytes are cells used for:",
+  "correct": "Defence, movement, attachment or hunting",
+  "wrong": [
+   "Digestion, circulation, respiration or excretion",
+   "Making spicules, spongin and the outer skeleton",
+   "Sensing light, gravity, temperature and salt level"
+  ],
+  "exp": "Cnidocytes contain stinging structures discharged when the cnidocil is triggered."
+ },
+ {
+  "s": "Phylum Cnidaria",
+  "q": "Cnidarians have ______ symmetry and a digestive cavity with ______ opening.",
+  "correct": "radial; a single (the mouth)",
+  "wrong": [
+   "bilateral; two (mouth and anus)",
+   "radial; two (mouth and anus)",
+   "bilateral; a single (the anus)"
+  ],
+  "exp": "The mouth is the only opening to the gastrovascular cavity."
+ },
+ {
+  "s": "Phylum Cnidaria",
+  "q": "The two body forms displayed by cnidarians are:",
+  "correct": "The pelagic medusa and the benthic polyp",
+  "wrong": [
+   "The benthic medusa and the pelagic polyp",
+   "The sessile gemmule and the free-swimming larva",
+   "The solitary sponge and the colonial hydroid"
+  ],
+  "exp": "Polymorphism (dimorphism): free-swimming medusa and attached polyp."
+ },
+ {
+  "s": "Phylum Cnidaria",
+  "q": "Which class of cnidarians has no medusa form?",
+  "correct": "Anthozoa (sea anemones and corals)",
+  "wrong": [
+   "Scyphozoa (true jellyfish and sea nettles)",
+   "Hydrozoa (hydroids and some small jellies)",
+   "Calcarea (chalky sponges and their relatives)"
+  ],
+  "exp": "Anthozoa are polyps only. In Scyphozoa the medusa dominates, in Hydrozoa the polyp usually dominates."
+ },
+ {
+  "s": "Phylum Platyhelminthes",
+  "q": "Flatworms are described as:",
+  "correct": "Triploblastic, bilaterally symmetrical, soft bodied and legless",
+  "wrong": [
+   "Diploblastic, radially symmetrical, soft bodied and legless worms",
+   "Triploblastic, bilaterally symmetrical, segmented and legged",
+   "Diploblastic, bilaterally symmetrical, hard bodied and legged"
+  ],
+  "exp": "Flatworms are triploblastic worm-like animals with bilateral symmetry, no legs and hydrostatic skeletons."
+ },
+ {
+  "s": "Phylum Platyhelminthes",
+  "q": "Cephalisation in flatworms refers to:",
+  "correct": "Having a recognisable head (anterior) end",
+  "wrong": [
+   "Having a gut that branches into three parts",
+   "Having segments that repeat along the body",
+   "Having a coelom that is filled with fluid"
+  ],
+  "exp": "Flatworms have dorsal, ventral, anterior and posterior ends."
+ },
+ {
+  "s": "Phylum Platyhelminthes",
+  "q": "Parasitic flatworms are adapted to their lifestyle by:",
+  "correct": "Adhesive structures, resistance to host enzymes and many eggs",
+  "wrong": [
+   "Cilia on the ventral side and a muscular pharynx for swallowing",
+   "A hard shell and a closed circulatory system for transport",
+   "Segmented bodies with bristles for crawling through the host"
+  ],
+  "exp": "Parasitic forms have adhesive structures, resist digestion, have complicated life cycles and produce many eggs; some have lost the gut."
+ },
+ {
+  "s": "Phylum Platyhelminthes",
+  "q": "Which class do planarians belong to?",
+  "correct": "Turbellaria",
+  "wrong": [
+   "Trematoda (flukes)",
+   "Cestoda (tapeworms)",
+   "Polychaeta (bristle worms)"
+  ],
+  "exp": "Turbellaria — mainly free-living, mostly marine, some freshwater (e.g. Planaria)."
+ },
+ {
+  "s": "Phylum Platyhelminthes",
+  "q": "In the life cycle of trematodes such as Schistosoma, the first intermediate host is usually a:",
+  "correct": "Mollusc, with a vertebrate as the final host",
+  "wrong": [
+   "Vertebrate, with a mollusc as the final host",
+   "Crustacean, with an insect as the final host",
+   "Annelid, with a nematode as the final host"
+  ],
+  "exp": "Flukes use a mollusc (intermediate) and a vertebrate (final host)."
+ },
+ {
+  "s": "Phylum Platyhelminthes",
+  "q": "Tapeworms (Cestoda) absorb nutrients through:",
+  "correct": "A syncytial tegument covered with microvilli",
+  "wrong": [
+   "A muscular gut that has three branches",
+   "A thin cuticle that is secreted by the epidermis",
+   "A system of canals that are lined with collar cells"
+  ],
+  "exp": "Tapeworms lack a digestive system; the tegument absorbs nutrients and resists host enzymes. The body is made of proglottids."
+ },
+ {
+  "s": "Phylum Mollusca",
+  "q": "Which feature is typical of molluscs?",
+  "correct": "A muscular foot, a mantle and a shell of calcium carbonate",
+  "wrong": [
+   "A chitinous exoskeleton with paired, jointed appendages",
+   "A body made of many repeated segments with septa",
+   "A skeleton of spicules with a central canal system for water"
+  ],
+  "exp": "Molluscs are soft-bodied; they secrete shells of calcium carbonate and use a muscular foot for locomotion."
+ },
+ {
+  "s": "Phylum Mollusca",
+  "q": "In molluscs the visceral mass is:",
+  "correct": "Above the foot and covered by the mantle",
+  "wrong": [
+   "Below the foot and covered by the shell only",
+   "Inside the foot and covered by the tentacles",
+   "Beside the gills and covered by the setae"
+  ],
+  "exp": "The visceral mass contains glands that secrete the mantle and shell."
+ },
+ {
+  "s": "Phylum Mollusca",
+  "q": "Molluscs have an open circulatory system, which means that:",
+  "correct": "Blood fills the coelom and circulates in it",
+  "wrong": [
+   "Blood is carried only inside closed vessels",
+   "Blood is replaced by water from outside the body",
+   "Blood does not carry any food or wastes at all"
+  ],
+  "exp": "In molluscs the coelom is filled with blood circulated in an open circulatory system."
+ },
+ {
+  "s": "Phylum Mollusca",
+  "q": "Adult snails are asymmetrical because the larvae undergo:",
+  "correct": "Torsion",
+  "wrong": [
+   "Metamerism",
+   "Cephalisation",
+   "Regeneration"
+  ],
+  "exp": "Gastropod embryos are bilaterally symmetrical, but torsion makes adults asymmetrical."
+ },
+ {
+  "s": "Phylum Mollusca",
+  "q": "Bivalves are mostly:",
+  "correct": "Sedentary filter feeders using gill currents",
+  "wrong": [
+   "Active predators using a siphon and tentacles",
+   "Free-living grazers using a rasping tongue",
+   "Parasites that use hooks to attach to hosts"
+  ],
+  "exp": "Bivalves have two shells joined by ligaments; the shell protects, but some have teeth for rasping wood."
+ },
+ {
+  "s": "Phylum Mollusca",
+  "q": "Which feature is typical of Class Cephalopoda?",
+  "correct": "They are active marine predators whose foot forms tentacles and a siphon",
+  "wrong": [
+   "They are sedentary filter feeders that have two hinged shells",
+   "They have many shells and a row of gills under the mantle",
+   "They are land-dwelling animals that have a single coiled shell"
+  ],
+  "exp": "Cephalopods (squid, octopus) have an internal shell, tentacles and a siphon; they exchange spermatophores."
+ },
+ {
+  "s": "Phylum Annelida",
+  "q": "Metamerism in annelids means that:",
+  "correct": "The body is made of serially repeated segments",
+  "wrong": [
+   "The body is divided into a head and a tail only",
+   "The body has a single hard shell with two valves",
+   "The body changes form completely during development"
+  ],
+  "exp": "Both the body and internal organs (except the digestive tract) are segmented; septa separate the segments."
+ },
+ {
+  "s": "Phylum Annelida",
+  "q": "Annelids breathe through the skin, and their blood pigment is:",
+  "correct": "Haemoglobin, in a closed circulatory system",
+  "wrong": [
+   "Haemolymph, in an open circulatory system",
+   "Chlorophyll, in a closed circulatory system",
+   "Chitin, in an open circulatory system"
+  ],
+  "exp": "Respiration is cutaneous, with respiratory pigments such as haemoglobin; most annelids have a well-developed coelom and closed circulation."
+ },
+ {
+  "s": "Phylum Annelida",
+  "q": "Which class has many bristles on each segment and a well-developed head with sense organs?",
+  "correct": "Polychaeta (e.g. lugworms and Nereis)",
+  "wrong": [
+   "Oligochaeta (e.g. earthworms)",
+   "Hirudinea (e.g. leeches)",
+   "Merostomata (e.g. horseshoe crabs)"
+  ],
+  "exp": "Polychaetes have many bristles per segment; oligochaetes (earthworms) have few bristles and lack a well-developed head."
+ },
+ {
+  "s": "Phylum Annelida",
+  "q": "Earthworms (Class Oligochaeta) have:",
+  "correct": "Few bristles per segment, no well-developed head, and a gizzard",
+  "wrong": [
+   "Many bristles per segment, a clear head, and a siphon for swimming",
+   "Three jaws with teeth, a proboscis, and exactly 34 segments",
+   "Chitinous plates, many legs, and a tracheal system for air"
+  ],
+  "exp": "Oligochaetes burrow in soil, are nocturnal and use gizzards for digestion."
+ },
+ {
+  "s": "Phylum Annelida",
+  "q": "Leeches (Hirudinea) are characterised by:",
+  "correct": "A fixed number of segments (34) and hirudin as an anticoagulant",
+  "wrong": [
+   "A variable number of segments and many bristles on each one",
+   "A fixed number of segments (34) and a chitinous exoskeleton",
+   "Many segments and parapodia for swimming in the open water"
+  ],
+  "exp": "Leeches lack setae and parapodia (except in one genus); blood-sucking forms secrete hirudin."
+ },
+ {
+  "s": "Phylum Nematoda",
+  "q": "Why do roundworms move with curved, whip-like motions?",
+  "correct": "They have longitudinal muscles but lack circular muscles",
+  "wrong": [
+   "They have circular muscles but lack longitudinal muscles",
+   "They have many jointed legs but no longitudinal muscles",
+   "They have a hard shell but no muscle layer at all"
+  ],
+  "exp": "Roundworms lack circular muscles, which accounts for their curvature motions."
+ },
+ {
+  "s": "Phylum Nematoda",
+  "q": "Wuchereria bancrofti is a nematode that:",
+  "correct": "Affects the lymphatic system and causes elephantiasis",
+  "wrong": [
+   "Infects the bloodstream and causes sleeping sickness",
+   "Lives in the intestine of pigs and causes trichinosis",
+   "Infects the liver of livestock and causes liver fluke disease"
+  ],
+  "exp": "Filarial worms cause elephantiasis; Trichina worms are intestinal parasites of pigs, rats and bears."
+ },
+ {
+  "s": "Phylum Arthropoda",
+  "q": "Arthropods have:",
+  "correct": "A chitinous exoskeleton with flexible membranes acting as joints",
+  "wrong": [
+   "A calcareous shell with a muscular foot for crawling",
+   "A soft cuticle with circular and longitudinal muscles only",
+   "An internal skeleton of bone with a vertebral column"
+  ],
+  "exp": "Arthropods are segmented animals with a chitinous exoskeleton and jointed, paired appendages."
+ },
+ {
+  "s": "Phylum Arthropoda",
+  "q": "In arthropods, respiratory gases are carried by:",
+  "correct": "The tracheal system, not the circulatory system",
+  "wrong": [
+   "The haemolymph, using haemoglobin in blood vessels",
+   "The malpighian tubules, using a pair of lungs",
+   "The gill slits, using pharyngeal pouches"
+  ],
+  "exp": "Arthropods have an open circulatory system that does not carry gases; the tracheal system delivers oxygen efficiently."
+ },
+ {
+  "s": "Phylum Arthropoda",
+  "q": "The excretory organs of arthropods are:",
+  "correct": "Malpighian tubules lying close to blood vessels",
+  "wrong": [
+   "Contractile vacuoles lying close to the cell membrane",
+   "Nephridia lying in each of the body segments",
+   "Choanocytes lying along the walls of the canals"
+  ],
+  "exp": "Excretory system: malpighian tubules."
+ },
+ {
+  "s": "Phylum Arthropoda",
+  "q": "Which evidence suggests that arthropods evolved from annelids?",
+  "correct": "Both show metamerism, paired appendages and a double ventral solid nerve cord",
+  "wrong": [
+   "Both have an internal skeleton and a dorsal tubular nerve cord of bone",
+   "Both have a calcium carbonate shell and a muscular foot for moving",
+   "Both have radial symmetry and a single opening for the digestive tract"
+  ],
+  "exp": "Shared features: metamerism, bilateral symmetry, posterior anus, double ventral nerve cord, paired appendages, cuticle."
+ },
+ {
+  "s": "Phylum Arthropoda",
+  "q": "Which grouping is correct?",
+  "correct": "Spiders, ticks and scorpions are in subphylum Chelicerata (class Arachnida)",
+  "wrong": [
+   "Spiders, ticks and scorpions are in subphylum Crustacea (class Insecta)",
+   "Centipedes and millipedes are in subphylum Chelicerata (class Merostomata)",
+   "Crabs and horseshoe crabs are in subphylum Uniramia (class Diplopoda)"
+  ],
+  "exp": "Chelicerata: Arachnida, Merostomata. Crustacea: crabs. Uniramia: Chilopoda, Diplopoda, Insecta."
+ },
+ {
+  "s": "Phylum Chordata",
+  "q": "Which three features characterise Phylum Chordata?",
+  "correct": "A notochord, a dorsal tubular nerve cord and pharyngeal gill slits",
+  "wrong": [
+   "A notochord, a ventral solid nerve cord and a coelom with septa",
+   "A chitinous skeleton, a dorsal nerve cord and tracheal tubes",
+   "A vertebral column, a ventral nerve cord and malpighian tubules"
+  ],
+  "exp": "Chordates have a notochord, a dorsal tubular nerve cord and pharyngeal gill slits."
+ },
+ {
+  "s": "Phylum Chordata",
+  "q": "The three subphyla of Chordata are:",
+  "correct": "Urochordata, Cephalochordata and Vertebrata",
+  "wrong": [
+   "Agnatha, Gnathostomata and Osteichthyes (bony fish)",
+   "Chelicerata, Crustacea and Uniramia (arthropod groups)",
+   "Mollusca, Annelida and Arthropoda (protostome phyla)"
+  ],
+  "exp": "Subphyla: Urochordata (tunicates), Cephalochordata (amphioxus) and Vertebrata/Craniata."
+ },
+ {
+  "s": "Phylum Chordata",
+  "q": "Lampreys and hagfish belong to which super class?",
+  "correct": "Agnatha (jawless fish)",
+  "wrong": [
+   "Gnathostomata (jawed vertebrates)",
+   "Chondrichthyes (cartilaginous fish)",
+   "Osteichthyes (bony fish)"
+  ],
+  "exp": "Vertebrata splits into Agnatha (lamprey, hagfish) and Gnathostomata (jawed vertebrates)."
+ },
+ {
+  "s": "Phylum Chordata",
+  "q": "Which of these is a class of Gnathostomata?",
+  "correct": "Class Aves (birds)",
+  "wrong": [
+   "Class Cestoda (tapeworms)",
+   "Class Polychaeta (lugworms)",
+   "Class Anthozoa (sea anemones)"
+  ],
+  "exp": "Gnathostomata: Chondrichthyes, Osteichthyes, Amphibia, Reptilia, Aves, Mammalia."
+ }
+];
+
+// ─── ENGINE ──────────────────────────────────────────────────────────────────
+const TOPICS = [...new Set(RAW.map(q => q.s))];
+const AVATARS = ['#3ddc84','#2ecc7e','#3498db','#e67e22','#e74c3c','#1abc9c','#f39c12','#9b59b6','#16a085','#2980b9'];
+
+let activeTopics = new Set(TOPICS);
+let quiz = [], cur = 0, score = 0, answered = false;
+let currentUser = {name:'', reg:''};
+let leaderboard = JSON.parse(localStorage.getItem('bio31101_zoo_lb') || '[]');
+let comments = JSON.parse(localStorage.getItem('bio31101_zoo_cmt') || '{}');
+
+function saveComments(){ localStorage.setItem('bio31101_zoo_cmt', JSON.stringify(comments)); }
+function saveLB(){ localStorage.setItem('bio31101_zoo_lb', JSON.stringify(leaderboard)); }
+
+// Fisher–Yates shuffle (unbiased)
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+// Put the correct answer at slot `pos`; shuffle the wrong answers into the other slots
+function buildQ(raw, pos) {
+  const opts = shuffle(raw.wrong);
+  opts.splice(pos, 0, raw.correct);
+  return { s: raw.s, q: raw.q, opts, ans: pos, exp: raw.exp };
+}
+
+// Correct-answer slots are spread evenly over A/B/C/D, then shuffled — no streak rule, no pattern to exploit
+function buildQuiz(){
+  const filtered = shuffle(RAW.filter(q => activeTopics.has(q.s)));
+  const slots = shuffle(filtered.map((_, i) => i % 4));
+  quiz = filtered.map((r, i) => buildQ(r, slots[i]));
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if(id==='leaderboard'){ renderLB(); document.querySelectorAll('.nav-btn')[1].classList.add('active'); }
+  else document.querySelectorAll('.nav-btn')[0].classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function buildTopicGrid(){
+  const g = document.getElementById('topic-grid');
+  g.innerHTML = '';
+  TOPICS.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'topic-toggle on';
+    b.textContent = t;
+    b.onclick = function(){
+      if(activeTopics.has(t)){
+        if(activeTopics.size === 1) return;
+        activeTopics.delete(t); b.className='topic-toggle';
+      } else {
+        activeTopics.add(t); b.className='topic-toggle on';
+      }
+    };
+    g.appendChild(b);
+  });
+}
+
+function updateStatPlayers(){ document.getElementById('stat-players').textContent = leaderboard.length; }
+
+function startQuiz(){
+  const name = document.getElementById('inp-name').value.trim();
+  const reg = document.getElementById('inp-reg').value.trim();
+  if(!name){ alert('Please enter your name.'); return; }
+  currentUser = { name, reg };
+  buildQuiz();
+  if(!quiz.length){ alert('Select at least one topic.'); return; }
+  cur = 0; score = 0; answered = false;
+  showScreen('quiz'); renderQ();
+}
+
+function renderQ(){
+  if(cur >= quiz.length){ endQuiz(); return; }
+  const q = quiz[cur];
+  document.getElementById('prog-fill').style.width = (cur / quiz.length * 100) + '%';
+  document.getElementById('prog-label').textContent = `Question ${cur+1} of ${quiz.length}`;
+  document.getElementById('prog-score').textContent = `${score} pts`;
+  document.getElementById('q-section').textContent = q.s;
+  document.getElementById('q-text').textContent = q.q;
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  ['A','B','C','D'].forEach((l,i) => {
+    const b = document.createElement('button');
+    b.className = 'opt-btn';
+    const letter = document.createElement('span'); letter.className = 'opt-letter'; letter.textContent = l;
+    const text = document.createElement('span'); text.textContent = q.opts[i];
+    b.appendChild(letter); b.appendChild(text);
+    b.onclick = function(){ if(!answered) select(i, b); };
+    opts.appendChild(b);
+  });
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById('discussion-section').style.display = 'none';
+  answered = false;
+  window.scrollTo(0,0);
+}
+
+function select(i, btn){
+  answered = true;
+  const q = quiz[cur];
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+  const fb = document.getElementById('feedback');
+  if(i === q.ans){
+    btn.classList.add('correct'); score++;
+    fb.className = 'feedback-box correct';
+    fb.innerHTML = `<strong>✓ Correct!</strong>${escHtml(q.exp)}`;
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.opt-btn')[q.ans].classList.add('correct');
+    fb.className = 'feedback-box wrong';
+    fb.innerHTML = `<strong>✗ Not quite.</strong>${escHtml(q.exp)}`;
+  }
+  fb.style.display = 'block';
+  document.getElementById('next-btn').style.display = 'inline-flex';
+  document.getElementById('prog-score').textContent = `${score} pts`;
+  showDiscussion(cur);
+}
+
+function nextQ(){ cur++; renderQ(); }
+
+function showDiscussion(idx){
+  const key = `q_${quiz[idx].q.slice(0,30).replace(/\W+/g,'_')}`;
+  document.getElementById('discussion-section').style.display = 'block';
+  renderComments(key);
+  document.getElementById('comment-input').dataset.key = key;
+}
+
+function renderComments(key){
+  const list = document.getElementById('comments-list');
+  const c = comments[key] || [];
+  if(!c.length){ list.innerHTML = '<div class="no-comments">No discussion yet — be the first.</div>'; return; }
+  list.innerHTML = c.map(cm => `
+    <div class="comment">
+      <div class="comment-author">${escHtml(cm.name)}${cm.reg?' <span style="color:var(--muted);font-weight:400">· '+escHtml(cm.reg)+'</span>':''}</div>
+      <div class="comment-text">${escHtml(cm.text)}</div>
+      <div class="comment-time">${escHtml(cm.time)}</div>
+    </div>`).join('');
+  list.scrollTop = list.scrollHeight;
+}
+
+function postComment(){
+  const inp = document.getElementById('comment-input');
+  const key = inp.dataset.key, text = inp.value.trim();
+  if(!text) return;
+  if(!comments[key]) comments[key] = [];
+  const now = new Date();
+  comments[key].push({ name: currentUser.name, reg: currentUser.reg, text,
+    time: now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · '+now.toLocaleDateString() });
+  saveComments(); inp.value = ''; renderComments(key);
+}
+
+function endQuiz(){
+  const total = quiz.length, pct = Math.round(score/total*100);
+  document.getElementById('result-ring').style.setProperty('--pct', pct+'%');
+  document.getElementById('result-pct').textContent = pct+'%';
+  document.getElementById('bd-correct').textContent = score;
+  document.getElementById('bd-wrong').textContent = total-score;
+  document.getElementById('bd-total').textContent = total;
+  let title, sub;
+  if(pct>=90){ title='Zoology Star! 🏆'; sub='Excellent grasp of animal classification and the major phyla. You are ready for the test.'; }
+  else if(pct>=75){ title='Well done! ✅'; sub='Strong performance. Revisit the topics where you lost marks — classes within each phylum and parasite life cycles are common traps.'; }
+  else if(pct>=60){ title='Good foundation. 📚'; sub='You know the basics. Review body symmetry, germ layers, body cavities and the key features of each phylum.'; }
+  else if(pct>=40){ title='Keep studying. 🔍'; sub='Go back through the slides: classification first, then Protozoa, then each phylum in order.'; }
+  else { title='Back to the notes. 📖'; sub='Re-read the Zoology slides carefully, then retry. Focus on how to tell the phyla and their classes apart.'; }
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-sub').textContent = sub;
+  leaderboard.push({ name: currentUser.name, reg: currentUser.reg, score, total, pct,
+    time: new Date().toLocaleString(), color: AVATARS[Math.abs(hashStr(currentUser.name))%AVATARS.length] });
+  leaderboard.sort((a,b)=>b.pct-a.pct||b.score-a.score);
+  saveLB(); updateStatPlayers(); showScreen('result');
+}
+
+function restartQuiz(){
+  buildQuiz();
+  cur=0; score=0; answered=false; showScreen('quiz'); renderQ();
+}
+
+function renderLB(){
+  const rows = document.getElementById('lb-rows');
+  document.getElementById('lb-count').textContent = `${leaderboard.length} attempt${leaderboard.length!==1?'s':''}`;
+  if(!leaderboard.length){ rows.innerHTML='<div class="lb-empty">No attempts yet. Be the first!</div>'; return; }
+  const rc=['gold','silver','bronze'], re=['1st','2nd','3rd'];
+  rows.innerHTML = leaderboard.slice(0,20).map((e,i)=>{
+    const initials=e.name.split(' ').filter(Boolean).map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const isYou=currentUser.name&&e.name===currentUser.name;
+    return `<div class="lb-row">
+      <div class="lb-rank ${rc[i]||''}">${i<3?re[i]:i+1}</div>
+      <div class="lb-avatar" style="background:${e.color}22;color:${e.color}">${escHtml(initials)}</div>
+      <div class="lb-info">
+        <div class="lb-name">${escHtml(e.name)} ${isYou?'<span class="badge badge-you">you</span>':''}</div>
+        <div class="lb-meta">${e.reg?escHtml(e.reg)+' · ':''}${escHtml(e.time)}</div>
+      </div>
+      <div class="lb-score-wrap">
+        <div class="lb-score">${e.score}/${e.total}</div>
+        <div class="lb-pct">${e.pct}%</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function hashStr(s){ let h=0; for(let c of s){h=((h<<5)-h)+c.charCodeAt(0);h|=0;} return h; }
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+document.getElementById('stat-q').textContent = RAW.length;
+document.getElementById('stat-t').textContent = TOPICS.length;
+buildTopicGrid();
+updateStatPlayers();
+</script>
+</body>
+</html>
